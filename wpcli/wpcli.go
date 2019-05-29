@@ -1,15 +1,18 @@
-package pancake
+package wpcli
 
 import (
+	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+
 	"github.com/cloudfoundry/libcfbuildpack/build"
 	"github.com/cloudfoundry/libcfbuildpack/helper"
 	"github.com/cloudfoundry/libcfbuildpack/layers"
 )
 
 // Dependency is the key used in the build plan by this buildpack
-const Dependency = "cf-pancake"
+const Dependency = "wp-cli"
 
 // Contributor is responsibile for deciding what this buildpack will contribute during build
 type Contributor struct {
@@ -45,32 +48,15 @@ func NewContributor(context build.Build) (c Contributor, willContribute bool, er
 	return contributor, true, nil
 }
 
-// Contribute will install cf-pancake, create profile.d to run "cf-pancake"
+// Contribute will install wp-cli
 func (c Contributor) Contribute() error {
 	return c.layer.Contribute(func(artifact string, layer layers.DependencyLayer) error {
 		layer.Logger.SubsequentLine("Installing to %s", layer.Root)
-		if err := helper.ExtractTarXz(artifact, layer.Root, 0); err != nil {
+		if err := helper.CopyFile(artifact, layer.Root); err != nil {
 			return err
 		}
 
-		pancakeBin, err := filepath.Glob(filepath.Join(layer.Root, "cf-pancake*"))
-		if err != nil {
-			return err
-		}
-
-		if err := os.MkdirAll(filepath.Join(layer.Root, "bin"), 0755); err != nil {
-			return err
-		}
-
-		if err := layer.AppendPathSharedEnv("PATH", filepath.Join(layer.Root, "bin")); err != nil {
-			return err
-		}
-
-		if err := os.Rename(pancakeBin[0], filepath.Join(layer.Root, "bin", "cf-pancake")); err != nil {
-			return err
-		}
-
-		if err := layer.WriteProfile("0_pancake.sh", runCFPancakeOnStart()); err != nil {
+		if err := writeWrapperScript(layer, "wp", wrapperScript()); err != nil {
 			return err
 		}
 		return nil
@@ -81,9 +67,29 @@ func (c Contributor) flags() []layers.Flag {
 	return []layers.Flag{layers.Cache, layers.Launch}
 }
 
-func runCFPancakeOnStart() string {
+func writeWrapperScript(layer layers.DependencyLayer, file string, format string, args ...interface{}) error {
+	layer.Touch()
+	layer.Logger.SubsequentLine("Writing wrapper script bin/%s", file)
+
+	if err := os.MkdirAll(filepath.Join(layer.Root, "bin"), 0755); err != nil {
+		return err
+	}
+
+	if err := layer.AppendPathSharedEnv("PATH", filepath.Join(layer.Root, "bin")); err != nil {
+		return err
+	}
+
+	f := filepath.Join(layer.Root, "bin", file)
+
+	return ioutil.WriteFile(f, []byte(fmt.Sprintf(format, args...)), 0755)
+}
+
+func wrapperScript() string {
 	return `#!/bin/bash
 
-eval "$(cf-pancake exports)"
+DEPDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+cd $DEPDIR
+
+php wp-cli-*.phar --path=$HOME/htdocs "$@"
 `
 }

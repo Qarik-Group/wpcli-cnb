@@ -6,7 +6,7 @@ import (
 
 	"github.com/buildpack/libbuildpack/buildplan"
 	"github.com/cloudfoundry/libcfbuildpack/detect"
-	"github.com/starkandwayne/cf-pancake-cnb/pancake"
+	"github.com/starkandwayne/wpcli-cnb/wpcli"
 )
 
 func main() {
@@ -31,6 +31,6 @@ func main() {
 
 func runDetect(context detect.Detect) (int, error) {
 	return context.Pass(buildplan.BuildPlan{
-		pancake.Dependency: buildplan.Dependency{},
+		wpcli.Dependency: buildplan.Dependency{},
 	})
 }

@@ -1,8 +1,8 @@
 
 [buildpack]
-id = "com.starkandwayne.cf-pancake"
-name = "CF Pancake Buildpack"
-version = "0.3.0"
+id = "com.starkandwayne.wpcli"
+name = "Wordpress CLI Buildpack"
+version = "0.5.0"
 
 [metadata]
 include_files = ["bin/build","bin/detect","buildpack.toml"]
@@ -12,9 +12,9 @@ pre_package = "./scripts/build.sh"
 id = "org.cloudfoundry.stacks.cflinuxfs3"
 
 [[metadata.dependencies]]
-id = "cf-pancake"
-name = "Pancake"
-sha256 = "6e22ea039732dfff455a7ad635b5f6bb293f8b11237c812b7eed24e9474ccecb"
+id = "wp-cli"
+name = "Wordpress CLI"
+version = "2.2.0"
+uri = "https://github.com/wp-cli/wp-cli/releases/download/v2.2.0/wp-cli-2.2.0.phar"
+sha256 = "71ee8a2449f17bf8a6fd385872cbdc3cc263107f7767a3b55f6c6e2ef5920368"
 stacks = ["org.cloudfoundry.stacks.cflinuxfs3"]
-uri = "https://github.com/cloudfoundry-community/cf-pancake/releases/download/v0.2.3/cf-pancake-linux-amd64.tar.xz"
-version = "0.2.3"

@@ -2,7 +2,6 @@
 .idea
 .bin
 *.tgz
-pancake-cnb_*
-cf-pancake-cnb_*
+*-cnb_*
 bin/
 dependency-cache/

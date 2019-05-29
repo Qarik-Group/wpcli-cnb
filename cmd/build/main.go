@@ -6,7 +6,7 @@ import (
 
 	"github.com/buildpack/libbuildpack/buildplan"
 	"github.com/cloudfoundry/libcfbuildpack/build"
-	"github.com/starkandwayne/cf-pancake-cnb/pancake"
+	"github.com/starkandwayne/wpcli-cnb/wpcli"
 )
 
 func main() {
@@ -27,7 +27,7 @@ func main() {
 func runBuild(context build.Build) (int, error) {
 	context.Logger.FirstLine(context.Logger.PrettyIdentity(context.Buildpack))
 
-	contributor, willContribute, err := pancake.NewContributor(context)
+	contributor, willContribute, err := wpcli.NewContributor(context)
 	if err != nil {
 		return context.Failure(102), err
 	}
