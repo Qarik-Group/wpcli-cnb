@@ -56,7 +56,7 @@ func (c Contributor) Contribute() error {
 			return err
 		}
 
-		if err := writeWrapperScript(layer, "wp", wrapperScript()); err != nil {
+		if err := writeWrapperScript(layer, "wp"); err != nil {
 			return err
 		}
 		return nil
@@ -67,35 +67,35 @@ func (c Contributor) flags() []layers.Flag {
 	return []layers.Flag{layers.Cache, layers.Launch}
 }
 
-func writeWrapperScript(layer layers.DependencyLayer, file string, format string, args ...interface{}) error {
+func writeWrapperScript(layer layers.DependencyLayer, file string, args ...interface{}) error {
 	layer.Touch()
 	layer.Logger.SubsequentLine("Writing wrapper script bin/%s", file)
 
-	binPath := filepath.Join(layer.Root, "bin")
+	bpBinPath := filepath.Join(layer.Root, "bin")
+	script := wrapperScript(bpBinPath)
 
-	if err := os.MkdirAll(binPath, 0755); err != nil {
+	if err := os.MkdirAll(bpBinPath, 0755); err != nil {
 		return err
 	}
 
-	if err := layer.AppendPathSharedEnv("PATH", binPath); err != nil {
+	if err := layer.AppendPathSharedEnv("PATH", bpBinPath); err != nil {
 		return err
 	}
 
-	if err := layer.AppendPathSharedEnv("PATH", "/layers/org.cloudfoundry.php/php-binary/bin"); err != nil {
-		return err
-	}
+	f := filepath.Join(bpBinPath, file)
 
-	f := filepath.Join(binPath, file)
-
-	return ioutil.WriteFile(f, []byte(fmt.Sprintf(format, args...)), 0755)
+	return ioutil.WriteFile(f, []byte(fmt.Sprintf(script, args...)), 0755)
 }
 
-func wrapperScript() string {
-	return `#!/bin/bash
+func wrapperScript(bpBinPath string) string {
+	return fmt.Sprintf(`#!/bin/bash
 
 DEPDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 cd $DEPDIR
 
+export PATH=$PATH:/layers/org.cloudfoundry.php/php-binary/bin
+export PATH=$PATH:%s
+
 php wp-cli-*.phar --path=$HOME/htdocs "$@"
-`
+`, bpBinPath)
 }
