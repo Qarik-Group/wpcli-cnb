@@ -1,6 +1,6 @@
 
 [buildpack]
-id = "com.starkandwayne.wpcli"
+id = "com.starkandwayne.wp-cli"
 name = "Wordpress CLI Buildpack"
 version = "0.5.0"
 

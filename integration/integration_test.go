@@ -45,7 +45,7 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 	it("should build a working OCI image for a simple app", func() {
 		app, err := dagger.PackBuild(filepath.Join("fixtures", "phpapp"), wpcliBP, phpBP, httpdBP, phpWebBP)
 		Expect(err).ToNot(HaveOccurred())
-		defer app.Destroy()
+		// defer app.Destroy()
 
 		Expect(app.Start()).To(Succeed())
 		Expect(app.HTTPGetBody("/")).To(ContainSubstring("PHP Version"))

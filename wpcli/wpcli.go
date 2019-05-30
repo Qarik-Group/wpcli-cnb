@@ -52,7 +52,7 @@ func NewContributor(context build.Build) (c Contributor, willContribute bool, er
 func (c Contributor) Contribute() error {
 	return c.layer.Contribute(func(artifact string, layer layers.DependencyLayer) error {
 		layer.Logger.SubsequentLine("Installing to %s", layer.Root)
-		if err := helper.CopyFile(artifact, layer.Root); err != nil {
+		if err := helper.CopyFile(artifact, filepath.Join(layer.Root, artifact)); err != nil {
 			return err
 		}
 
@@ -71,15 +71,21 @@ func writeWrapperScript(layer layers.DependencyLayer, file string, format string
 	layer.Touch()
 	layer.Logger.SubsequentLine("Writing wrapper script bin/%s", file)
 
-	if err := os.MkdirAll(filepath.Join(layer.Root, "bin"), 0755); err != nil {
+	binPath := filepath.Join(layer.Root, "bin")
+
+	if err := os.MkdirAll(binPath, 0755); err != nil {
 		return err
 	}
 
-	if err := layer.AppendPathSharedEnv("PATH", filepath.Join(layer.Root, "bin")); err != nil {
+	if err := layer.AppendPathSharedEnv("PATH", binPath); err != nil {
 		return err
 	}
 
-	f := filepath.Join(layer.Root, "bin", file)
+	if err := layer.AppendPathSharedEnv("PATH", "/layers/org.cloudfoundry.php/php-binary/bin"); err != nil {
+		return err
+	}
+
+	f := filepath.Join(binPath, file)
 
 	return ioutil.WriteFile(f, []byte(fmt.Sprintf(format, args...)), 0755)
 }
